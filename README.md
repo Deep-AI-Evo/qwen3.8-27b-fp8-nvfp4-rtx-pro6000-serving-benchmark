@@ -36,10 +36,10 @@ vLLM FP8 与 NVFP4 全面对比 · TTFT / Prefill / Decode / 并发 / 长上下�
 
 | Prompt | FP8 TTFT / Prefill / Decode | NVFP4 TTFT / Prefill / Decode |
 |---|---|---|
-| ~1.4K | 0.23 s / 6,265 t/s / 39.5 t/s | 0.17 s / 8,941 t/s / 47.3 t/s |
-| ~29.5K | 4.16 s / 7,100 t/s / 24.5 t/s | 3.11 s / 9,465 t/s / 27.0 t/s |
-| ~88.8K | 16.5 s / 5,384 t/s / 13.7 t/s | 13.4 s / 6,616 t/s / 14.6 t/s |
-| ~177.3K | 45.8 s / 3,869 t/s / 8.1 t/s | 39.9 s / 4,447 t/s / 8.7 t/s |
+| ~1.4K | 0.23 s / 6,265 t/s / 95.6 t/s | 0.16 s / 9,431 t/s / 100.2 t/s |
+| ~29.5K | 4.14 s / 7,124 t/s / 53.3 t/s | 2.97 s / 9,915 t/s / 62.1 t/s |
+| ~88.9K | 16.5 s / 5,390 t/s / 28.5 t/s | 13.2 s / 6,766 t/s / 34.8 t/s |
+| ~177.4K | 45.4 s / 3,906 t/s / 19.1 t/s | 39.5 s / 4,496 t/s / 18.2 t/s |
 
 ### 🔀 并发扩展（500 tok/流）
 
@@ -95,7 +95,7 @@ NVFP4 静态 KV 量化乱码、Mamba cache 超界），Agent 自行试错每一�
 ## 📏 测试方法论
 
 - prefill/TTFT：OpenAI API 流式请求，TTFT = 请求发出 → 首个 token，prefill t/s = prompt_tokens / TTFT；每轮随机前缀杜绝缓存命中
-- decode：流式生成期间 tokens/s（剔除首 token）
+- decode：流式生成 tokens/s（剔除首 token），**必须用 `usage.completion_tokens` 计数**——MTP 投机采样下单个流式 chunk 可携带多个已接受 token，按 chunk 数统计会低估约 2~3 倍（本仓库曾因此误报，已修正）
 - 并发 profile：N 线程同时发请求分别计时；聚合吞吐 = Σtokens / 窗口时间
 - 所有对比均在 GPU 空闲状态下进行；关键数据 3 轮取均值
 - 捞针测试：~97K tokens 填充文本 70% 深度插入随机密码，验证真实长上下文召回

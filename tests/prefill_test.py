@@ -59,12 +59,15 @@ def run_round(client, model, prompt, max_tokens=128):
     total = time.time() - t0
     decode_time = total - (ttft or total)
     prompt_tokens = usage.prompt_tokens if usage else 0
+    # 注意：MTP 投机采样下单个流式 chunk 可能携带多个已接受 token，
+    # decode 速度必须用 usage.completion_tokens 而非 chunk 数
+    completion_tokens = usage.completion_tokens if usage else gen_tokens
     return {
         "prompt_tokens": prompt_tokens,
         "ttft_s": round(ttft or 0, 3),
         "prefill_tps": round(prompt_tokens / ttft, 1) if ttft else None,
-        "decode_tps": round(gen_tokens / decode_time, 1) if decode_time > 0 else None,
-        "completion_tokens": usage.completion_tokens if usage else gen_tokens,
+        "decode_tps": round(completion_tokens / decode_time, 1) if decode_time > 0 else None,
+        "completion_tokens": completion_tokens,
     }
 
 
