@@ -68,6 +68,10 @@ MTP 草稿头只有 1 层（目标 64 层），短上下文时目标最终 hidde
 验证浪费少）、marlin(mxfp4) 后端 vs cutlass、vLLM 0.26 vs 0.21。在 PRO 6000 上验证
 n=1/marlin 组合是后续 TODO。
 
+**MTP 对 prefill 的影响（PRO 5000 实测，可忽略）**：±5% 以内（2.7K/37K/232K 三档），
+prefill 排行不变（FP8 > NVFP4 > Q6_K）；TTFT 多出的时间主要是草稿模型 prefill。
+MTP 的全部收益/损失都发生在 decode 侧。
+
 **实践建议**：
 
 - 短/中上下文（<30K）：放心开 MTP，收益 28%~92%
