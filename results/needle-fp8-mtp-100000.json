@@ -1,0 +1,10 @@
+{
+  "label": "fp8-mtp",
+  "target_tokens": 100000,
+  "depth": 0.7,
+  "password": "QW38-XH9IHZ0D",
+  "answer": "QW38-XH9IHZ0D",
+  "passed": true,
+  "prompt_tokens": 96886,
+  "time_s": 19.61
+}

@@ -1,0 +1,20 @@
+{
+  "label": "fp8-mtp",
+  "concurrency": 2,
+  "max_tokens": 500,
+  "per_stream": [
+    {
+      "tokens": 500,
+      "time_s": 7.26,
+      "tps": 68.8
+    },
+    {
+      "tokens": 500,
+      "time_s": 6.96,
+      "tps": 71.8
+    }
+  ],
+  "avg_stream_tps": 70.3,
+  "aggregate_tps": 137.0,
+  "window_s": 7.3
+}

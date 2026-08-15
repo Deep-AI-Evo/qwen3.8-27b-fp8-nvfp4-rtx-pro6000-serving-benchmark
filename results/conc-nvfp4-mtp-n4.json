@@ -1,0 +1,30 @@
+{
+  "label": "nvfp4-mtp",
+  "concurrency": 4,
+  "max_tokens": 500,
+  "per_stream": [
+    {
+      "tokens": 500,
+      "time_s": 5.41,
+      "tps": 92.4
+    },
+    {
+      "tokens": 500,
+      "time_s": 5.41,
+      "tps": 92.4
+    },
+    {
+      "tokens": 500,
+      "time_s": 5.45,
+      "tps": 91.8
+    },
+    {
+      "tokens": 500,
+      "time_s": 5.7,
+      "tps": 87.8
+    }
+  ],
+  "avg_stream_tps": 91.1,
+  "aggregate_tps": 346.5,
+  "window_s": 5.77
+}

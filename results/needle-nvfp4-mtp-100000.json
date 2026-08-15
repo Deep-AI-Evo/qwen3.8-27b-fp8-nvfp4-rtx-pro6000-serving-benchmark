@@ -1,0 +1,10 @@
+{
+  "label": "nvfp4-mtp",
+  "target_tokens": 100000,
+  "depth": 0.7,
+  "password": "QW38-73KM6PVN",
+  "answer": "QW38-73KM6PVN",
+  "passed": true,
+  "prompt_tokens": 96886,
+  "time_s": 16.11
+}

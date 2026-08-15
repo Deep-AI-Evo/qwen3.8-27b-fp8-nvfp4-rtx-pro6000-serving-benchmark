@@ -1,0 +1,50 @@
+{
+  "label": "fp8-mtp",
+  "concurrency": 8,
+  "max_tokens": 500,
+  "per_stream": [
+    {
+      "tokens": 500,
+      "time_s": 6.81,
+      "tps": 73.5
+    },
+    {
+      "tokens": 500,
+      "time_s": 6.46,
+      "tps": 77.4
+    },
+    {
+      "tokens": 500,
+      "time_s": 6.68,
+      "tps": 74.8
+    },
+    {
+      "tokens": 500,
+      "time_s": 6.86,
+      "tps": 72.8
+    },
+    {
+      "tokens": 500,
+      "time_s": 6.76,
+      "tps": 74.0
+    },
+    {
+      "tokens": 500,
+      "time_s": 6.58,
+      "tps": 76.0
+    },
+    {
+      "tokens": 500,
+      "time_s": 7.06,
+      "tps": 70.8
+    },
+    {
+      "tokens": 500,
+      "time_s": 6.98,
+      "tps": 71.6
+    }
+  ],
+  "avg_stream_tps": 73.9,
+  "aggregate_tps": 556.2,
+  "window_s": 7.19
+}

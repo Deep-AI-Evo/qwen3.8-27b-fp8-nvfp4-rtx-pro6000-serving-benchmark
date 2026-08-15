@@ -1,0 +1,34 @@
+From: Deep-AI-Evo
+Subject: fix(qwen3_5): pass quant_config to ParallelLMHead for quantized lm_head
+
+vLLM 0.21.0 的 qwen3_5.py / qwen3_5_mtp.py 创建 ParallelLMHead 时漏传
+quant_config（对比 qwen2.py / qwen3.py 均有传），导致加载 lm_head 被量化的
+checkpoint（如 unsloth/Qwen3.8-27B-NVFP4，lm_head 为 FP8）时报错：
+
+    ValueError: There is no module or parameter named 'lm_head.weight_scale'
+    in Qwen3_5ForCausalLM. The available parameters belonging to lm_head
+    (ParallelLMHead) are: {'lm_head.weight'}
+
+两个文件各补一行 `quant_config=self.quant_config,` 即可。
+
+--- vllm/model_executor/models/qwen3_5.py ---
+@@ 约 475 行（Qwen3_5ForCausalLM.__init__）
+                 self.lm_head = ParallelLMHead(
+                     config.vocab_size,
+                     config.hidden_size,
++                    quant_config=self.quant_config,
+                     prefix=maybe_prefix(prefix, "lm_head"),
+                 )
+
+--- vllm/model_executor/models/qwen3_5_mtp.py ---
+@@ 约 381 行（Qwen3_5MTP.__init__）
+                 self.lm_head = ParallelLMHead(
+                     config.vocab_size,
+                     config.hidden_size,
++                    quant_config=self.quant_config,
+                     prefix=maybe_prefix(prefix, "lm_head"),
+                 )
+
+应用方式（pip 用户目录安装示例）：
+    patch -p0 -d ~/.local/lib/python3.12/site-packages < patches/lm_head_quant_config.patch
+或直接手工编辑上述两处。
