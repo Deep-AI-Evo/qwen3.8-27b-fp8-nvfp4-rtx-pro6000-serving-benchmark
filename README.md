@@ -106,6 +106,7 @@ NVFP4 静态 KV 量化乱码、Mamba cache 超界），Agent 自行试错每一�
 |---|---|
 | 📖 [部署教程](docs/Qwen3.8-27B-PRO6000-部署教程.md) | 环境准备、镜像下载、启动参数详解、API 示例、4 个踩坑实录 |
 | 📈 [测试报告](docs/Qwen3.8-27B-PRO6000-测试报告.md) | 功能测试、prefill/decode/并发/捞针全量数据、MTP 对比、使用建议 |
+| ⚖️ [跨设备横向对比](docs/Qwen3.8-27B-跨设备横向对比.md) | DGX Spark / RTX PRO 5000 / RTX PRO 6000 三设备同口径数据对比 |
 
 ## 🗂 仓库结构
 
