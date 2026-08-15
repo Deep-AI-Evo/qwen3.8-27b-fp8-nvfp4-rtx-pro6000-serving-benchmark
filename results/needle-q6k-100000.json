@@ -1,0 +1,10 @@
+{
+  "label": "q6k",
+  "target_tokens": 100000,
+  "depth": 0.7,
+  "password": "QW38-GTI29HDQ",
+  "answer": "QW38-GTI29HDQ",
+  "passed": true,
+  "prompt_tokens": 96885,
+  "time_s": 48.17
+}

@@ -1,0 +1,30 @@
+{
+  "label": "q6k",
+  "concurrency": 4,
+  "max_tokens": 500,
+  "per_stream": [
+    {
+      "tokens": 500,
+      "time_s": 12.55,
+      "tps": 39.8
+    },
+    {
+      "tokens": 500,
+      "time_s": 12.55,
+      "tps": 39.8
+    },
+    {
+      "tokens": 500,
+      "time_s": 12.56,
+      "tps": 39.8
+    },
+    {
+      "tokens": 500,
+      "time_s": 12.55,
+      "tps": 39.8
+    }
+  ],
+  "avg_stream_tps": 39.8,
+  "aggregate_tps": 158.5,
+  "window_s": 12.62
+}

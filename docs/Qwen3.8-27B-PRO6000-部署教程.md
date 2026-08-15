@@ -129,6 +129,64 @@ curl http://127.0.0.1:8000/v1/chat/completions -H 'Content-Type: application/jso
 
 服务就绪后访问 `http://127.0.0.1:8000/docs` 查看 OpenAI 兼容 API。
 
+## 4.5 llama.cpp Q6_K（可选第三方案，⚠️ 必须用 CUDA 12.8 编译）
+
+**警告：Blackwell（sm_120）上不要用 CUDA 13.x 自编译 llama.cpp**——实测 FA kernel
+异常（prefill 慢 5~26 倍，`-fa 0` 路径直接 CUDA error 崩溃）。NVIDIA Blackwell 迁移指南
+建议 sm_120 用 CUDA 12.8 编译，本机实测 CUDA 12.8 构建一切正常（数据见测试报告 §9）。
+（Windows 用户直接用官方预编译二进制即可，无此问题。）
+
+### 4.5.1 准备 CUDA 12.8 工具链（无需 root，不动系统驱动）
+
+```bash
+# 下载 runfile（国内自动跳转 nvidia.cn 节点），只装 toolkit 到用户目录
+curl -LO https://developer.download.nvidia.com/compute/cuda/12.8.1/local_installers/cuda_12.8.1_570.124.06_linux.run
+sh cuda_12.8.1_570.124.06_linux.run --silent --toolkit \
+  --toolkitpath=$HOME/cuda-12.8 --no-man-page --no-opengl-libs --override
+$HOME/cuda-12.8/bin/nvcc --version   # 应显示 release 12.8
+```
+
+### 4.5.2 编译 llama.cpp（b9692）
+
+```bash
+git clone https://github.com/ggml-org/llama.cpp.git && cd llama.cpp
+git fetch --depth 1 origin tag b9692 && git checkout b9692
+
+cmake -B build -DGGML_CUDA=ON -DGGML_CUDA_FA_ALL_QUANTS=ON \
+  -DCMAKE_CUDA_ARCHITECTURES=120 \
+  -DCUDAToolkit_ROOT=$HOME/cuda-12.8 \
+  -DCMAKE_CUDA_COMPILER=$HOME/cuda-12.8/bin/nvcc \
+  -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target llama-server llama-bench -j$(nproc)
+```
+
+- `GGML_CUDA_FA_ALL_QUANTS=ON`：q8_0 KV cache 下 FA 生效所需
+- 编译后先用 `llama-bench` 自检（10 秒，可提前发现 kernel 异常构建）：
+
+```bash
+build/bin/llama-bench -m <模型.gguf> -ngl 99 -fa 1 -ctk q8_0 -ctv q8_0 -p 16384 -n 4
+# 健康参考值：Q6_K 27B pp16K ≈ 3,500 t/s；若只有几百 t/s，说明构建有问题
+```
+
+### 4.5.3 下载模型并启动
+
+```bash
+# GGUF（unsloth，HF 直连不通时走镜像）
+HF_ENDPOINT=https://hf-mirror.com hf download unsloth/Qwen3.8-27B-GGUF \
+  Qwen3.8-27B-UD-Q6_K_XL.gguf --local-dir ~/models/Qwen3.8-27B-GGUF
+
+LD_LIBRARY_PATH=$HOME/cuda-12.8/lib64 build/bin/llama-server \
+  --model ~/models/Qwen3.8-27B-GGUF/Qwen3.8-27B-UD-Q6_K_XL.gguf \
+  --host 127.0.0.1 --port 8000 \
+  --ctx-size 1048576 --n-gpu-layers 99 --threads 8 --parallel 4 \
+  --flash-attn on --no-mmap \
+  --cache-type-k q8_0 --cache-type-v q8_0
+```
+
+- `--ctx-size 1048576 --parallel 4`：总上下文 1M，每槽上限 262K（跑 200K 单请求必须给足总上下文）
+- `--cache-type-k/v q8_0`：KV 显存减半，速度代价 ~1%
+- llama.cpp 兼容 OpenAI API，本仓库测试脚本可直接用
+
 ## 6. 验证
 
 参照 `docs/Qwen3.8-27B-PRO6000-测试报告.md` 的方法，

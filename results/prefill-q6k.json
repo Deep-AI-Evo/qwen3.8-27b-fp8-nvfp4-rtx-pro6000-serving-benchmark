@@ -1,0 +1,129 @@
+{
+  "label": "q6k",
+  "sizes": {
+    "1024": {
+      "avg": {
+        "prompt_tokens": 1403.0,
+        "ttft_s": 0.81,
+        "prefill_tps": 1863.13,
+        "decode_tps": 55.43
+      },
+      "rounds": [
+        {
+          "prompt_tokens": 1388,
+          "ttft_s": 1.152,
+          "prefill_tps": 1204.8,
+          "decode_tps": 55.3,
+          "completion_tokens": 26
+        },
+        {
+          "prompt_tokens": 1403,
+          "ttft_s": 0.639,
+          "prefill_tps": 2195.2,
+          "decode_tps": 55.8,
+          "completion_tokens": 25
+        },
+        {
+          "prompt_tokens": 1418,
+          "ttft_s": 0.648,
+          "prefill_tps": 2189.4,
+          "decode_tps": 55.2,
+          "completion_tokens": 34
+        }
+      ]
+    },
+    "32768": {
+      "avg": {
+        "prompt_tokens": 29458.67,
+        "ttft_s": 9.46,
+        "prefill_tps": 3117.37,
+        "decode_tps": 51.63
+      },
+      "rounds": [
+        {
+          "prompt_tokens": 29471,
+          "ttft_s": 9.094,
+          "prefill_tps": 3240.7,
+          "decode_tps": 51.4,
+          "completion_tokens": 33
+        },
+        {
+          "prompt_tokens": 29361,
+          "ttft_s": 9.582,
+          "prefill_tps": 3064.2,
+          "decode_tps": 51.6,
+          "completion_tokens": 29
+        },
+        {
+          "prompt_tokens": 29544,
+          "ttft_s": 9.696,
+          "prefill_tps": 3047.2,
+          "decode_tps": 51.9,
+          "completion_tokens": 27
+        }
+      ]
+    },
+    "100000": {
+      "avg": {
+        "prompt_tokens": 88838.0,
+        "ttft_s": 37.55,
+        "prefill_tps": 2367.4,
+        "decode_tps": 44.4
+      },
+      "rounds": [
+        {
+          "prompt_tokens": 88825,
+          "ttft_s": 36.34,
+          "prefill_tps": 2444.3,
+          "decode_tps": 44.5,
+          "completion_tokens": 27
+        },
+        {
+          "prompt_tokens": 88854,
+          "ttft_s": 37.975,
+          "prefill_tps": 2339.8,
+          "decode_tps": 44.4,
+          "completion_tokens": 33
+        },
+        {
+          "prompt_tokens": 88835,
+          "ttft_s": 38.323,
+          "prefill_tps": 2318.1,
+          "decode_tps": 44.3,
+          "completion_tokens": 33
+        }
+      ]
+    },
+    "200000": {
+      "avg": {
+        "prompt_tokens": 177421.0,
+        "ttft_s": 105.89,
+        "prefill_tps": 1675.83,
+        "decode_tps": 35.67
+      },
+      "rounds": [
+        {
+          "prompt_tokens": 177311,
+          "ttft_s": 103.834,
+          "prefill_tps": 1707.6,
+          "decode_tps": 35.7,
+          "completion_tokens": 48
+        },
+        {
+          "prompt_tokens": 177432,
+          "ttft_s": 106.864,
+          "prefill_tps": 1660.4,
+          "decode_tps": 35.7,
+          "completion_tokens": 36
+        },
+        {
+          "prompt_tokens": 177520,
+          "ttft_s": 106.974,
+          "prefill_tps": 1659.5,
+          "decode_tps": 35.6,
+          "completion_tokens": 48
+        }
+      ]
+    }
+  }
+}
