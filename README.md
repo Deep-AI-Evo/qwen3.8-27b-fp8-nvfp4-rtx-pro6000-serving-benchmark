@@ -13,7 +13,18 @@ vLLM FP8 / NVFP4 / llama.cpp Q6_K 三方对比 · TTFT / Prefill / Decode / 并�
 | 4 | **并发扩展极佳** | vLLM 8 并发单流仅降 ~10%，聚合近线性（95→654 t/s）；llama.cpp 4 并发聚合 158 t/s |
 | 5 | **100K 长上下文一次答对** | 大海捞针（70% 深度）FP8 / NVFP4 / Q6_K 三方案均通过 |
 | 6 | **NVFP4 需 3 个手工修复** | 详见部署教程 §3；FP8 官方仓 1 个环境变量即可跑通 |
-| 7 | **llama.cpp 在 Blackwell 必须用 CUDA 12.8 编译** | CUDA 13.x 自编译 FA kernel 异常：prefill 慢 5~26 倍、fa=0 直接崩溃（见测试报告 §7） |
+| 7 | **llama.cpp 在 Blackwell 必须用 CUDA 12.8 编译** | CUDA 13.x 自编译 FA kernel 异常：prefill 慢 5~26 倍、fa=0 直接崩溃（见测试报告 §8） |
+
+## 🎯 按场景选型（一句话版）
+
+| 你的场景 | 推荐配置 | 关键数字 |
+|---|---|---|
+| 交互 / agent（短请求、工具调用） | **vLLM NVFP4 + MTP** | TTFT 0.16s、decode 132 t/s |
+| 高并发批量生成 | **vLLM NVFP4 + MTP** | 8 并发聚合 654 t/s |
+| RAG 长文档灌入（prefill 敏感） | **vLLM NVFP4 / FP8** | 200K 灌入 40~46s（Q6_K 需 106s） |
+| 长上下文持续生成（>30K decode） | **vLLM NVFP4 / FP8，关 MTP** | 200K decode 43.7 / 39.6 t/s（开 MTP 只剩 18~19） |
+| 权重质量优先 / 单文件极简运维 | **llama.cpp Q6_K（CUDA 12.8 编译）** | decode 35.7~55.4 t/s，~6.5-bit 近无损 |
+| 不想折腾的省心基线 | **vLLM FP8 官方仓** | 1 个环境变量跑通 |
 
 ## 🖥️ 测试环境
 

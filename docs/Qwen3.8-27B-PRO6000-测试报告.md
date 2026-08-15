@@ -138,7 +138,7 @@ llama.cpp（--parallel 4）4 并发聚合 158.5 t/s，扩展性也不错，但�
 - 复杂推理/代码开思考模式；闲聊/翻译/摘要关思考更快
 - 启动后先发预热请求；避免同机其他 GPU 任务抢占（会污染数据，参考兄弟仓库踩坑记录）
 
-## 9. llama.cpp 在 Blackwell（sm_120）上的 CUDA 13.x kernel 异常（重要）
+## 8. llama.cpp 在 Blackwell（sm_120）上的 CUDA 13.x kernel 异常（重要）
 
 实测自编译 llama.cpp（master 与 b9692 均复现）在 sm_120 + CUDA 13.3 下：
 
@@ -156,7 +156,7 @@ llama.cpp（--parallel 4）4 并发聚合 158.5 t/s，扩展性也不错，但�
 - **官方 Windows 预编译二进制（PRO 5000 仓库所用）无此问题**；Linux 自编译请务必用 CUDA 12.8，
   构建方法见部署教程 §4
 
-## 8. 踩坑记录（部署侧 4 项）
+## 9. 踩坑记录（部署侧 4 项）
 
 见 `docs/Qwen3.8-27B-PRO6000-部署教程.md` §3：FlashInfer sampler JIT（sm_120）、
 vLLM lm_head 漏传 quant_config（两个文件）、NVFP4 静态 KV 量化乱码、
