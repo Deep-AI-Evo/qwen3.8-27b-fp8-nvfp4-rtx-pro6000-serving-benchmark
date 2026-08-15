@@ -3,6 +3,20 @@
 vLLM FP8 / NVFP4 / llama.cpp Q6_K 三方对比 · TTFT / Prefill / Decode / 并发 / 长上下文捞针 / MTP
 基于 2026-08-15 实机测试，所有数据均可复现（测试脚本附于仓库）
 
+
+---
+
+## 📑 目录
+
+- [核心结论（TL;DR）](#-核心结论tldr)
+- [按场景选型](#-按场景选型一句话版)
+- [测试环境](#%EF%B8%8F-测试环境)
+- [实测数据速览](#-实测数据速览)
+- [一键启动 & 智能体复现](#-一键启动命令环境就绪后)
+- [跨设备横向对比（DGX Spark / PRO 5000 / PRO 6000）](#-跨设备横向对比dgx-spark--rtx-pro-5000--rtx-pro-6000) ⭐ 在文末
+
+> ⭐ 想看 **DGX Spark / RTX PRO 5000 / RTX PRO 6000** 三设备谁强？文末有完整的[三设备横向对比](#-跨设备横向对比dgx-spark--rtx-pro-5000--rtx-pro-6000)（含 PRO 6000 FP8 全档位数据）。
+
 > 📊 **三设备横向对比请看这里**：[Qwen3.8-27B 跨设备横向对比（DGX Spark / RTX PRO 5000 / RTX PRO 6000）](docs/Qwen3.8-27B-跨设备横向对比.md)
 
 ## 📌 核心结论（TL;DR）
@@ -30,41 +44,6 @@ vLLM FP8 / NVFP4 / llama.cpp Q6_K 三方对比 · TTFT / Prefill / Decode / 并�
 
 ---
 
-## ⚖️ 跨设备横向对比（DGX Spark / RTX PRO 5000 / RTX PRO 6000）
-
-> 完整版（含部署概览、口径说明、捞针验证）：[Qwen3.8-27B 跨设备横向对比](https://github.com/Deep-AI-Evo/qwen3.8-27b-fp8-nvfp4-rtx-pro6000-serving-benchmark/blob/main/docs/Qwen3.8-27B-跨设备横向对比.md)
-> ⚠️ 三台设备的 vLLM 版本（0.27.1 / 0.26.0 / 0.21.0）、MTP 设置（×3 / 未开 / ×2）与系统（aarch64 / Windows / x86_64）不完全相同，数量级参考意义大于精确对比。
-
-**单并发 Decode（tok/s）**
-
-| 设备 / 配置 | 短（~1-3K） | ~100K | ~200K |
-|---|---|---|---|
-| DGX Spark · NVFP4 + MTP×3 | ~21 | 16.6 | 14.2 |
-| PRO 5000 · vLLM FP8（无 MTP） | 37.3 | — | 26.4 |
-| PRO 5000 · llama.cpp Q6_K | 39.7 | — | 39.9 |
-| PRO 5000 · vLLM NVFP4 | 49.6 | — | 42.1 |
-| **PRO 6000 · vLLM FP8（无 MTP）** | **52.6** | **45.6** | **39.6** |
-| PRO 6000 · vLLM FP8 + MTP×2 | 95.6 | 28.5 | 19.1 |
-| PRO 6000 · NVFP4（无 MTP） | 58.6 | 49.1 | 43.7 |
-| PRO 6000 · NVFP4 + MTP×2 | 100.2 | 34.8 | 18.2 |
-| PRO 6000 · llama.cpp Q6_K | 55.4 | 44.4 | 35.7 |
-
-**Prefill（tok/s）与 8 并发聚合（tok/s）**
-
-| 设备 / 配置 | Prefill @~200K | Prefill @~30-40K | 8 并发聚合 decode |
-|---|---|---|---|
-| DGX Spark · NVFP4 + MTP×3 | 840 | — | 77.7 |
-| PRO 5000 · vLLM FP8 | 2,114 | 3,671 | — |
-| **PRO 6000 · vLLM FP8 + MTP×2** | **3,869** | **7,100** | **556.2** |
-| PRO 6000 · NVFP4 + MTP×2 | 4,447 | 9,465 | 654.1 |
-| PRO 6000 · llama.cpp Q6_K | 1,676 | 3,117 | — |
-
-**要点**：
-- PRO 6000 FP8 无 MTP 是"省心+长上下文"最优基线（52.6 t/s 起步、200K 仍有 39.6 t/s）；短上下文/高并发则 NVFP4+MTP 称王
-- MTP 收益随上下文衰减，200K 档应关 MTP（详见横向对比文档）
-- DGX Spark 的价值在 128GB 统一内存跑 256K 全上下文 + 安静低功耗桌面形态，纯算力约为 PRO 6000 的 1/4~1/8
-
----
 ## 🖥️ 测试环境
 
 | 项目 | 配置 |
@@ -118,36 +97,6 @@ vLLM FP8 / NVFP4 / llama.cpp Q6_K 三方对比 · TTFT / Prefill / Decode / 并�
 ### 🎯 长上下文真实性
 
 大海捞针：~97K tokens 文本 70% 深度藏入随机密码，FP8 / NVFP4 / Q6_K 三方案均一次答对。
-
-## 🆚 跨设备横向对比（DGX Spark / RTX PRO 5000 / RTX PRO 6000）
-
-> 摘要自 [跨设备横向对比](docs/Qwen3.8-27B-跨设备横向对比.md)（含全部档位与同组织仓库链接）。
-> ⚠️ 口径差异：三台设备 vLLM 版本 / MTP 设置 / 操作系统不完全相同，数量级参考意义大于精确对比。
-
-**单并发 decode（tok/s）**
-
-| 上下文 | DGX Spark NVFP4 | PRO 5000 FP8（无 MTP） | PRO 5000 Q6_K | PRO 6000 NVFP4+MTP | PRO 6000 NVFP4 无 MTP | PRO 6000 Q6_K |
-|---|---|---|---|---|---|---|
-| 短（~1-3K） | ~21 | 37.3 | 39.7 | 100.2 | 58.6 | 55.4 |
-| ~200K | 14.2 | 26.4 | 39.9 | 18.2 | **43.7** | 35.7 |
-
-**单并发 prefill ~200K（tok/s）/ TTFT（s）**
-
-| DGX Spark NVFP4 | PRO 5000 FP8 | PRO 5000 Q6_K | PRO 6000 NVFP4+MTP | PRO 6000 Q6_K |
-|---|---|---|---|---|
-| 840 / 244s | 2,114 / 110s | 768 / 302s | **4,447 / 39.9s** | 1,676 / 105.9s |
-
-**并发 decode 聚合吞吐（tok/s）**
-
-| 并发 | DGX Spark NVFP4 | PRO 5000 FP8 | PRO 6000 NVFP4+MTP | PRO 6000 Q6_K（4 槽） |
-|---|---|---|---|---|
-| 1 | 20.0 | 37.3 | 95.0 | 49.6 |
-| 2 | 22.7 | 64.7 | 151.3 | 92.8 |
-| 4 | 44.0 | — | 346.5 | 158.5 |
-| 8 | 77.7 | — | **654.1** | — |
-
-一句话：**PRO 6000 在 prefill/TTFT/并发上全面领先（对 DGX Spark 约 4~8 倍）；
-200K 超长上下文 decode 的正确姿势是关 MTP——NVFP4 无 MTP 43.7 t/s 为三设备全场最高。**
 
 ## 🚀 一键启动命令（环境就绪后）
 
@@ -236,6 +185,38 @@ python3 tests/prefill_test.py http://127.0.0.1:8000 <model> <label> 1024 32768 1
 python3 tests/conc_test.py    http://127.0.0.1:8000 <model> <N> <max_tokens> <label>
 python3 tests/needle_test.py  http://127.0.0.1:8000 <model> <label> 100000 0.7
 ```
+
+## 🆚 跨设备横向对比（DGX Spark / RTX PRO 5000 / RTX PRO 6000）
+
+> 摘要自 [跨设备横向对比](docs/Qwen3.8-27B-跨设备横向对比.md)（含全部档位与同组织仓库链接）。
+> ⚠️ 口径差异：三台设备 vLLM 版本 / MTP 设置 / 操作系统不完全相同，数量级参考意义大于精确对比。
+
+**单并发 decode（tok/s）**
+
+| 上下文 | DGX Spark NVFP4 | PRO 5000 FP8（无 MTP） | PRO 5000 Q6_K | **PRO 6000 FP8+MTP** | **PRO 6000 FP8 无 MTP** | PRO 6000 NVFP4+MTP | PRO 6000 NVFP4 无 MTP | PRO 6000 Q6_K |
+|---|---|---|---|---|---|---|---|---|
+| 短（~1-3K） | ~21 | 37.3 | 39.7 | 95.6 | 52.6 | 100.2 | 58.6 | 55.4 |
+| ~200K | 14.2 | 26.4 | 39.9 | 19.1 | 39.6 | 18.2 | **43.7** | 35.7 |
+
+**单并发 prefill ~200K（tok/s）/ TTFT（s）**
+
+| DGX Spark NVFP4 | PRO 5000 FP8 | PRO 5000 Q6_K | **PRO 6000 FP8+MTP** | PRO 6000 NVFP4+MTP | PRO 6000 Q6_K |
+|---|---|---|---|---|---|
+| 840 / 244s | 2,114 / 110s | 768 / 302s | 3,869 / 45.8s | **4,447 / 39.9s** | 1,676 / 105.9s |
+
+**并发 decode 聚合吞吐（tok/s）**
+
+| 并发 | DGX Spark NVFP4 | PRO 5000 FP8 | **PRO 6000 FP8+MTP** | PRO 6000 NVFP4+MTP | PRO 6000 Q6_K（4 槽） |
+|---|---|---|---|---|---|
+| 1 | 20.0 | 37.3 | 78.8 | 95.0 | 49.6 |
+| 2 | 22.7 | 64.7 | 137.0 | 151.3 | 92.8 |
+| 4 | 44.0 | — | 299.3 | 346.5 | 158.5 |
+| 8 | 77.7 | — | 556.2 | **654.1** | — |
+
+一句话：**PRO 6000 在 prefill/TTFT/并发上全面领先（对 DGX Spark 约 4~8 倍）；
+200K 超长上下文 decode 的正确姿势是关 MTP——NVFP4 无 MTP 43.7 t/s 为三设备全场最高。**
+
+---
 
 ## 🔗 同组织相关仓库
 
