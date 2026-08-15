@@ -3,6 +3,8 @@
 vLLM FP8 / NVFP4 / llama.cpp Q6_K 三方对比 · TTFT / Prefill / Decode / 并发 / 长上下文捞针 / MTP
 基于 2026-08-15 实机测试，所有数据均可复现（测试脚本附于仓库）
 
+> 📊 **三设备横向对比请看这里**：[Qwen3.8-27B 跨设备横向对比（DGX Spark / RTX PRO 5000 / RTX PRO 6000）](docs/Qwen3.8-27B-跨设备横向对比.md)
+
 ## 📌 核心结论（TL;DR）
 
 | # | 结论 | 依据 |
