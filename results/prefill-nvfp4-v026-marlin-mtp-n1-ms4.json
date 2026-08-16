@@ -1,0 +1,36 @@
+{
+  "label": "nvfp4-v026-marlin-mtp-n1-ms4",
+  "sizes": {
+    "148000": {
+      "avg": {
+        "prompt_tokens": 131310.67,
+        "ttft_s": 36.79,
+        "prefill_tps": 3569.73,
+        "decode_tps": 19.7
+      },
+      "rounds": [
+        {
+          "prompt_tokens": 131122,
+          "ttft_s": 36.695,
+          "prefill_tps": 3573.3,
+          "decode_tps": 20.9,
+          "completion_tokens": 35
+        },
+        {
+          "prompt_tokens": 131522,
+          "ttft_s": 36.619,
+          "prefill_tps": 3591.7,
+          "decode_tps": 19.4,
+          "completion_tokens": 34
+        },
+        {
+          "prompt_tokens": 131288,
+          "ttft_s": 37.043,
+          "prefill_tps": 3544.2,
+          "decode_tps": 18.8,
+          "completion_tokens": 38
+        }
+      ]
+    }
+  }
+}

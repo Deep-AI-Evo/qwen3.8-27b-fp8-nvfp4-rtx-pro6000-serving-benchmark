@@ -25,7 +25,7 @@ vLLM FP8 / NVFP4 / llama.cpp Q6_K 三方对比 · TTFT / Prefill / Decode / 并�
 |---|---|---|
 | 1 | **NVFP4+MTP 是短上下文最优配置** | decode 132 t/s、8 并发聚合 654 t/s、prefill 全面领先，质量与 FP8 无可见差距 |
 | 2 | **MTP 白捡 2.3 倍 decode（仅短上下文）** | FP8 51→116 t/s，NVFP4 56→132 t/s，接受率 83~100% |
-| 3 | **长上下文 MTP 收益取决于配置** | 本机（n=2, cutlass）200K 崩盘至 18~19 t/s，关 MTP 反有 39.6~43.7；但 PRO 5000（n=1, marlin）NVFP4+MTP @148K 仍有 57.8 t/s 三设备最高（见横向对比 MTP 专题） |
+| 3 | **长上下文必须关 MTP（本机全配置实测）** | 本机 200K 崩盘至 16~19 t/s，关 MTP 反有 39.6~43.7；n 值（1/2）、后端（cutlass/marlin）、vLLM 版本（0.21/0.26）逐一排除均无效，且接受率全程健康（71~100%）——崩盘是每步开销失控，非接受率坍塌。PRO 5000（Windows）报告的 +37% 用同栈在 Linux 未能复现（见横向对比 MTP 专题） |
 | 4 | **并发扩展极佳** | vLLM 8 并发单流仅降 ~10%，聚合近线性（95→654 t/s）；llama.cpp 4 并发聚合 158 t/s |
 | 5 | **100K 长上下文一次答对** | 大海捞针（70% 深度）FP8 / NVFP4 / Q6_K 三方案均通过 |
 | 6 | **NVFP4 需 3 个手工修复** | 详见部署教程 §3；FP8 官方仓 1 个环境变量即可跑通 |
@@ -38,7 +38,7 @@ vLLM FP8 / NVFP4 / llama.cpp Q6_K 三方对比 · TTFT / Prefill / Decode / 并�
 | 交互 / agent（短请求、工具调用） | **vLLM NVFP4 + MTP** | TTFT 0.16s、decode 132 t/s |
 | 高并发批量生成 | **vLLM NVFP4 + MTP** | 8 并发聚合 654 t/s |
 | RAG 长文档灌入（prefill 敏感） | **vLLM NVFP4 / FP8** | 200K 灌入 40~46s（Q6_K 需 106s） |
-| 长上下文持续生成（>30K decode） | **vLLM NVFP4 / FP8，关 MTP**（或改用 n=1 配置实测） | 200K decode 43.7 / 39.6 t/s（本机开 MTP n=2 只剩 18~19；PRO 5000 n=1 marlin 反而 +37%） |
+| 长上下文持续生成（>30K decode） | **vLLM NVFP4 / FP8，关 MTP**（Linux 实测 n=1/n=2、cutlass/marlin、0.21/0.26 全崩） | 200K decode 43.7 / 39.6 t/s（开 MTP 只剩 16~19） |
 | 权重质量优先 / 单文件极简运维 | **llama.cpp Q6_K（CUDA 12.8 编译）** | decode 35.7~55.4 t/s，~6.5-bit 近无损 |
 | 不想折腾的省心基线 | **vLLM FP8 官方仓** | 1 个环境变量跑通 |
 
@@ -50,7 +50,7 @@ vLLM FP8 / NVFP4 / llama.cpp Q6_K 三方对比 · TTFT / Prefill / Decode / 并�
 |---|---|
 | GPU | NVIDIA RTX PRO 6000 Blackwell 96GB（sm_120，97887 MiB） |
 | 系统 | Linux x86_64，驱动 595.84 / CUDA 13.2 |
-| vLLM | 0.21.0（Python 3.12 + torch 2.11.0+cu130） |
+| vLLM | 0.21.0（Python 3.12 + torch 2.11.0+cu130）；另建 venv 验证 0.26.0 + marlin（对齐 PRO 5000 栈，见横向对比 MTP 专题） |
 | llama.cpp | b9692 自编译（**CUDA 12.8**，FA_ALL_QUANTS=ON；⚠️ CUDA 13.x 编译在 sm_120 上 FA kernel 异常，勿用） |
 | 模型 | [Qwen/Qwen3.8-27B-FP8](https://modelscope.cn/models/Qwen/Qwen3.8-27B-FP8) · [unsloth/Qwen3.8-27B-NVFP4](https://huggingface.co/unsloth/Qwen3.8-27B-NVFP4) · [unsloth/Qwen3.8-27B-GGUF](https://huggingface.co/unsloth/Qwen3.8-27B-GGUF)（UD-Q6_K_XL） |
 | 配置 | 262,144 上下文 · MTP(k=2) · gpu_memory_utilization 0.92 |
@@ -196,8 +196,10 @@ python3 tests/needle_test.py  http://127.0.0.1:8000 <model> <label> 100000 0.7
 | 上下文 | DGX Spark NVFP4+MTP×3 | PRO 5000 NVFP4 无MTP → +MTP(n=1) | PRO 5000 Q6_K 无MTP → +MTP | PRO 6000 NVFP4 无MTP → +MTP(n=2) | PRO 6000 Q6_K |
 |---|---|---|---|---|---|
 | 短（~1-11K） | ~21 | 49.6 → 63.6 | 39.7 → 61.9 | 58.6 → **100.2** | 55.4 |
-| ~148K | — | 42.1 → **57.8** ✅ | 39.9 → 40.0 | — | — |
+| ~148K | — | 42.1 → **57.8** ✅（未能在 Linux 复现） | 39.9 → 40.0 | ≈46* → 21.4 ❌（0.26 marlin n=1 同栈复测） | — |
 | ~200K | 14.2 | 42.1（无MTP） | 39.9 | **43.7** → 18.2 ❌ | 35.7 |
+
+\* PRO 6000 无 MTP 148K 未单测，为 100K/200K 插值。
 
 **单并发 prefill ~200K（tok/s）/ TTFT（s）**
 
@@ -216,8 +218,9 @@ python3 tests/needle_test.py  http://127.0.0.1:8000 <model> <label> 100000 0.7
 | 16 | 115.7（峰值 160） | — | — | — | — |
 
 一句话：**PRO 6000 在 prefill/TTFT/并发上全面领先（对 DGX Spark 约 4~8 倍）；
-长上下文 decode 之王是 PRO 5000 的 NVFP4+MTP（n=1, marlin）57.8 t/s @148K——
-MTP 长上下文收益因后端/n 值而反转（PRO 6000 的 n=2 配置 200K 崩盘，关 MTP 才有 43.7），用前实测自己的配置。**
+长上下文 decode 的最高报告值是 PRO 5000 的 NVFP4+MTP 57.8 t/s @148K，但 PRO 6000 用完全相同软件栈
+（vLLM 0.26 + marlin + n=1）复测仅 21.4 t/s——n 值/后端/版本/调度参数逐一排除，接受率全程健康，
+差异指向 OS/驱动层（Windows vs Linux）。Linux 下可复现的最佳实践：长上下文关 MTP（43.7 t/s @200K）。**
 
 ---
 

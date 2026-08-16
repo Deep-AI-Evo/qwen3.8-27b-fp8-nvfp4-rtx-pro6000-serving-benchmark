@@ -191,3 +191,51 @@ LD_LIBRARY_PATH=$HOME/cuda-12.8/lib64 build/bin/llama-server \
 
 参照 `docs/Qwen3.8-27B-PRO6000-测试报告.md` 的方法，
 或直接在仓库根目录执行 `./tests/run_matrix.sh <label>` 跑完整测试矩阵。
+
+## 7. 附录：vLLM 0.26.0 + marlin 后端（对齐 PRO 5000 栈的可选配方）
+
+为排查 MTP 长上下文崩盘（见横向对比文档 MTP 专题），本机在独立 venv 中复刻了
+PRO 5000（Windows）的完整软件栈。**注意：此配置在本机并未带来 MTP 长上下文收益，
+仅作为跨设备对齐/排障参考留存。**
+
+```bash
+python3 -m venv ~/vllm026-venv
+~/vllm026-venv/bin/pip install vllm==0.26.0   # 自动带入 torch 2.11 + flashinfer 0.6.14
+```
+
+四个坑及解法（前两个与 PRO 5000 Windows 侧完全相同）：
+
+1. **`--linear-backend marlin` 需要 `VLLM_TEST_FORCE_FP8_MARLIN=1`**，否则 marlin 拒接
+   FP8 层（sm_120 被认为有原生 FP8，强制走 marlin 需该开关）。
+2. **lm_head 缺 `output_size_per_partition`**（vLLM 0.26 marlin 路径 bug，PRO 5000 补丁①②同款）。
+   修复两处（均在 venv 的 site-packages 内）：
+   - `vllm/model_executor/layers/quantization/utils/marlin_utils_fp8.py` 的
+     `prepare_fp8_layer_for_marlin()`：`part_size_n/k` 改为 `getattr(layer, "output_size_per_partition", None)`
+     兜底 `layer.num_embeddings_per_partition` / `layer.embedding_dim`；并按 weight 实际形状
+     自适应 `size_k_first`（ParallelLMHead 的 weight 是 (N, K) 布局）。
+   - `vllm/model_executor/kernels/linear/scaled_mm/marlin.py` 的 `apply_weights()`：
+     `size_n/size_k` 做同样的兜底。
+3. **flashinfer 误认系统 nvcc**：若系统 `/usr/bin/nvcc` 低于 12.9，flashinfer 会判定
+   "SM 12.x requires CUDA >= 12.9" 并清空目标架构（报 "FlashInfer requires GPUs with sm75 or higher"）。
+   解法：启动时显式指定 `FLASHINFER_CUDA_ARCH_LIST="12.0f"`，并把 `CUDA_HOME` 指向 venv 自带的
+   CUDA 13.3（`~/vllm026-venv/lib/python3.12/site-packages/nvidia/cu13`）。
+4. **flashinfer JIT 编译 sampling 算子失败**（pip 版 nvcc 与头文件版本不齐）：直接
+   `VLLM_USE_FLASHINFER_SAMPLER=0` 绕开，attention 走 FLASH_ATTN 不受影响。
+
+启动命令（与 PRO 5000 `scripts/run_vllm_nvfp4_mtp_bench.bat` 参数逐一对应）：
+
+```bash
+export CUDA_HOME=~/vllm026-venv/lib/python3.12/site-packages/nvidia/cu13
+export PATH=$CUDA_HOME/bin:$PATH
+VLLM_USE_FLASHINFER_SAMPLER=0 VLLM_TEST_FORCE_FP8_MARLIN=1 FLASHINFER_CUDA_ARCH_LIST="12.0f" \
+  ~/vllm026-venv/bin/vllm serve ~/models/Qwen3.8-27B-NVFP4 \
+  --served-model-name qwen38-nvfp4-026 \
+  --reasoning-parser qwen3 \
+  --linear-backend marlin \
+  --max-model-len 262144 \
+  --gpu-memory-utilization 0.90 \
+  --max-num-seqs 4 \
+  --enable-prefix-caching \
+  --speculative-config '{"method":"mtp","num_speculative_tokens":1}' \
+  --port 8000
+```
