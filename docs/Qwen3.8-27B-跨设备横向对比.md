@@ -98,6 +98,11 @@ PRO 6000 的 NVFP4/FP8 崩盘呈现不同特征（接受率健康、每步开销
 prefill 排行不变（FP8 > NVFP4 > Q6_K）；TTFT 多出的时间主要是草稿模型 prefill。
 MTP 的全部收益/损失都发生在 decode 侧。
 
+**引擎显存效率对比（为何 vLLM 能 3×256K 而 SGLang 不能）**：
+- vLLM KV 池 954K tokens（0.80+fp8）→ 3×256K ✅；SGLang KV 池 552-618K（0.85-0.90+fp8）→ 2×256K ❌
+- 根因：SGLang mamba 状态池+radix 缓存 ~14 GiB（vLLM ~3 GiB）、DSPARK 草稿 +1.7 GiB、verify 图预留更多
+- 结论：**vLLM=显存效率型（并发），SGLang=速度型（单流）**，两引擎互补
+
 **实践建议**：
 
 - 短/中上下文（<30K）：放心开 MTP，收益 28%~92%（三设备一致）
